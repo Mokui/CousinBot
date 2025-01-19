@@ -4,6 +4,11 @@ import discord
 from discord.ext import commands
 import yt_dlp
 import asyncio
+import logging
+
+# Suppress discord.player error messages
+discord_logger = logging.getLogger('discord.player')
+#discord_logger.setLevel(logging.CRITICAL)  # Suppresses ERROR logs
 
 load_dotenv()
 TOKEN: str = os.getenv('DISCORD_TOKEN')
@@ -16,7 +21,7 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 
 # Ensure FFmpeg options
 FFMPEG_OPTIONS = {
-    'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
+    'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5 -timeout 600',
     'options': '-vn',
     'executable': r'C:\Users\Mokui\Documents\ffmpeg-2025-01-02-git-0457aaf0d3-essentials_build\bin\ffmpeg.exe',
 }
@@ -28,9 +33,16 @@ YDL_OPTIONS = {
     'retries': 3,
     'extract_flat': True,  # Don't download the full video, just extract info
     'geo_bypass': True,
+    'source_address': '0.0.0.0',
     'extractaudio': True,  # Only extract audio,
+    'quiet': False,
     'ignoreerrors': True,
-    'timeout': 120
+    'timeout': 600,
+    'postprocessors': [{
+        'key': 'FFmpegExtractAudio',
+        'preferredcodec': 'webm',  # Or use 'opus' if preferred
+        'preferredquality': '192',
+    }]
 }
 
 # Update YDL_OPTIONS to accommodate playlist download specifics
@@ -41,8 +53,14 @@ playlist_YDL_OPTIONS = {
     'quiet': True,
     'extract_flat': True,  # Don't download the full video, just extract info
     'geo_bypass': True,
+    'source_address': '0.0.0.0',
     'extractaudio': True,  # Only extract audio,
     'ignoreerrors': True,
+    'postprocessors': [{
+        'key': 'FFmpegExtractAudio',
+        'preferredcodec': 'webm',  # Or use 'opus' if preferred
+        'preferredquality': '192',
+    }]
 }
 
 # Track the current voice client and the playing queue
@@ -78,18 +96,31 @@ async def play(ctx, url: str):
         else:
             await ctx.send("Entres dans le discord d'abord, tié un fou toi!")
             return
+    else:
+        voice_client = ctx.voice_client
 
-    with yt_dlp.YoutubeDL(YDL_OPTIONS) as ydl:
-        try:
+    if voice_client.is_playing():
+        voice_client.stop()
+    
+    try:
+        with yt_dlp.YoutubeDL(YDL_OPTIONS) as ydl:
             info = ydl.extract_info(url, download=False)
-            url2 = info['url']
-            source = await discord.FFmpegOpusAudio.from_probe(url2, **FFMPEG_OPTIONS)
+            audio_url = info.get("url")
 
-            # Play the audio
-            voice_client.play(source)
-            await ctx.send(f"Oh cong, j'envoi la musique là: {info['title']}")
-        except Exception as e:
-            await ctx.send(f"Ayaya y'a un problème mon copaing: {str(e)}")
+            # Attempt to play the audio using FFmpegOpusAudio
+            try:
+                source = await discord.FFmpegOpusAudio.from_probe(audio_url, **FFMPEG_OPTIONS)
+                voice_client.play(source, after=lambda e: print(f"Finito: {e}"))
+                await ctx.send(f"Oh cong, j'envoi la musique là: {info['title']}")
+            except Exception as ffmpeg_error:
+                # Fallback: Retry with basic FFmpegAudio
+                await ctx.send("Ca bug là mon couz, avec le probe FFmpeg. j'essaye un truc...")
+                source = discord.FFmpegPCMAudio(audio_url, **FFMPEG_OPTIONS)
+                voice_client.play(source, after=lambda e: print(f"Finito: {e}"))
+                await ctx.send(f"Fallback réussi. maintenant jlis: {info['title']}")
+
+    except Exception as e:
+        await ctx.send(f"Ayaya y'a un problème mon copaing: {str(e)}")
 
 # Command to play audio from a YouTube Playlist
 @bot.command(name="playlist")
