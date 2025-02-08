@@ -231,8 +231,23 @@ async def commands_help(ctx):
     `!pause` - On met sa douce main caleuse sur la platine
     `!resume` - Il enleve sa paluche de gorille de la platine
     `!next` - Le couz il tej le son qui est en train de jouer. Oui.
+    `!cringe` - Le couz il cringe pour toi
     """
     await ctx.send(help_message)
+
+# Command to ask the bot to cringe for you
+@bot.command(name="cringe")
+async def cringe(ctx):
+    message_text = "T'es génant frérot. Stop en faits."
+    gif_url = "https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExMzNhdzdlZGR5NGc5dnhrMzE2bWtnNTF3NjVvcXJxeG1taXBjanBoNyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/xHAjMWywlTg8gHMbhY/giphy.gif"  # Replace with your desired GIF URL
+
+    # Send message
+    await ctx.send(message_text)
+
+    # Send GIF as an embed
+    embed = discord.Embed()
+    embed.set_image(url=gif_url)
+    await ctx.send(embed=embed)
 
 # Run the bot
 bot.run(TOKEN)
