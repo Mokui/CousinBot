@@ -107,18 +107,9 @@ async def play(ctx, url: str):
             info = ydl.extract_info(url, download=False)
             audio_url = info.get("url")
 
-            # Attempt to play the audio using FFmpegOpusAudio
-            try:
-                source = await discord.FFmpegOpusAudio.from_probe(audio_url, **FFMPEG_OPTIONS)
-                voice_client.play(source, after=lambda e: print(f"Finito: {e}"))
-                await ctx.send(f"Oh cong, j'envoi la musique là: {info['title']}")
-            except Exception as ffmpeg_error:
-                # Fallback: Retry with basic FFmpegAudio
-                await ctx.send("Ca bug là mon couz, avec le probe FFmpeg. j'essaye un truc...")
-                source = discord.FFmpegPCMAudio(audio_url, **FFMPEG_OPTIONS)
-                voice_client.play(source, after=lambda e: print(f"Finito: {e}"))
-                await ctx.send(f"Fallback réussi. maintenant jlis: {info['title']}")
-
+            source = discord.FFmpegPCMAudio(audio_url, **FFMPEG_OPTIONS)
+            voice_client.play(source, after=lambda e: print(f"Finito: {e}"))
+            await ctx.send(f"Oh cong, j'envoi la musique là: {info['title']}")
     except Exception as e:
         await ctx.send(f"Ayaya y'a un problème mon copaing: {str(e)}")
 
@@ -238,8 +229,8 @@ async def commands_help(ctx):
 # Command to ask the bot to cringe for you
 @bot.command(name="cringe")
 async def cringe(ctx):
-    message_text = "T'es génant frérot. Stop en faits."
-    gif_url = "https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExMzNhdzdlZGR5NGc5dnhrMzE2bWtnNTF3NjVvcXJxeG1taXBjanBoNyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/xHAjMWywlTg8gHMbhY/giphy.gif"  # Replace with your desired GIF URL
+    message_text = "T'es génant frérot. Stop en fait."
+    gif_url = "https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExZnpuZWlnNGFob3RoMHFxaXhwOThkYWxyeTZzcmdtdTdvNGIwNXU5ZiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/fPgUmix9paUZHN3aj0/giphy.gif"  # Replace with your desired GIF URL
 
     # Send message
     await ctx.send(message_text)
