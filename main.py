@@ -113,6 +113,7 @@ async def play(ctx, url: str):
     except Exception as e:
         await ctx.send(f"Ayaya y'a un problème mon copaing: {str(e)}")
 
+
 # Command to play audio from a YouTube Playlist
 @bot.command(name="playlist")
 async def playlist(ctx, url: str):
@@ -143,6 +144,13 @@ async def playlist(ctx, url: str):
 # Function to play the next song in the queue
 async def next(ctx):
     global voice_client, song_queue
+
+    # Si plus connecté (ex: déconnecté manuellement ou crash Discord), on vide tout
+    if not ctx.voice_client or not ctx.voice_client.is_connected():
+        song_queue.clear()
+        voice_client = None
+        return
+
     if song_queue:
         if not voice_client.is_playing():
             song_url = song_queue.pop(0)
@@ -211,6 +219,18 @@ async def stop(ctx):
     else:
         await ctx.send("Tié est fada toi? ya rien en cours mon frerot")
 
+@bot.command(name="add")
+async def add(ctx, url: str):
+    global song_queue
+    try:
+        with yt_dlp.YoutubeDL(YDL_OPTIONS) as ydl:
+            info = ydl.extract_info(url, download=False)
+            song_queue.append(info["webpage_url"])
+            await ctx.send(f"J'te l'ai mis sous le coude mon cousin: **{info['title']}**. Il passe après le son en cours 🔥")
+    except Exception as e:
+        await ctx.send(f"Azy y'a eu un bug : {str(e)}")
+
+
 @bot.command(name='commands')
 async def commands_help(ctx):
     help_message = """
@@ -218,6 +238,8 @@ async def commands_help(ctx):
     `!join` - Tu fais venir le couz dans le tchat
     `!leave` - Le couz en a marre donc il se barre
     `!play <url>` - Demandes au couz une musique Youtube, il a pas besoin d'etre deja sur le chat, il te rejoint tkt pas mon gâté
+    `!playlist <url>` - Demandes au couz une playlist Youtube, il arrive avec sa platine il va te mettre bien. tié un tigre toi.
+    `!add` - Le couz te met le prochain son sous le coude 
     `!stop` - Bah le couz il dégomme la sono
     `!pause` - On met sa douce main caleuse sur la platine
     `!resume` - Il enleve sa paluche de gorille de la platine
