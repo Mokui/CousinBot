@@ -1,0 +1,11 @@
+# HTTP Cookie File
+# https://curl.se/docs/cookies.html
+# This file can be used to read or write cookies.
+
+# Format: <cookie-name> <cookie-value> <domain> <path> <expires> <flags>
+# Example: sessionid 1234567890abcdefghijklmnopqrstuvwxyz .youtube.com / 1633072000 0
+
+# Exemple de cookie faux
+PREF 1234567890abcdefghijklmnopqrstuvwxyz .youtube.com / 1633072000 0
+VISITOR_INFO1_LIVE 1234567890abcdefghijklmnopqrstuvwxyz .youtube.com / 1633072000 0
+YSC 1234567890abcdefghijklmnopqrstuvwxyz .youtube.com / 1633072000 0
